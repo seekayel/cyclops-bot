@@ -42,6 +42,7 @@ const verifySignature = function(req) {
   // hmac.update(`${version}:${timestamp}:${req.rawBody}`)
   // return hmac.digest('hex') === hash
 
+  console.log(req.rawBody)
   var message = `${version}:${timestamp}:${req.rawBody}`
   var shouldBe = CryptoJS.HmacSHA256(message, process.env.SLACK_SIGNING_SECRET).toString()
   return shouldBe === hash
