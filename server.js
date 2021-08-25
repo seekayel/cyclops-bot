@@ -75,6 +75,7 @@ app.use(express.urlencoded({ verify: rawBodySaver, extended: true }));
 app.use(express.json({ verify: rawBodySaver }));
 app.use(authenticate)
 
+const {verifyEmail} = require('./lib/ip-quality-score')
 
 app.post('/commands', async (req, res) => {
   console.log(req.headers)
@@ -88,10 +89,13 @@ app.post('/commands', async (req, res) => {
     return
   }
   if (bot_id != "B02BCEVSHM4") {
+    var emailRes = await verifyEmail('ckl@seekayel.com')
+    var good = true
     const result = await web.chat.postMessage({
-      text: `Hello to you to <@${user}>`,
+      text: `<@${user}> I got the following: ${JSON.stringify(emailRes, null, 2)}`,
       channel: channel,
-      thread_ts: ts
+      thread_ts: ts,
+      icon_emoji: (good)? ':white_check_mark:':':octagonal_sign:'
     });
     console.log(result)
   } else {
