@@ -37,7 +37,7 @@ const verifySignature = function(req) {
 app.use(bodyParser.urlencoded({verify: rawBodySaver, extended: true }));
 app.use(bodyParser.json({ verify: rawBodySaver }));
 
-app.post('/commands', (req, res) => {
+app.post('/commands', async (req, res) => {
   const { token, challenge, type, channel, thread_ts } = req.body;
 
   console.log(JSON.stringify(req.headers,null,2))
