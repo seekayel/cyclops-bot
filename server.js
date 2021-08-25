@@ -75,29 +75,42 @@ app.use(express.urlencoded({ verify: rawBodySaver, extended: true }));
 app.use(express.json({ verify: rawBodySaver }));
 app.use(authenticate)
 
-const {verifyEmail} = require('./lib/ip-quality-score')
+const {verifyEmail} = require('./src/ip-quality-score')
+const {findEmails} = require('./src/parser')
 
 app.post('/commands', async (req, res) => {
   console.log(req.headers)
   console.log(req.body)
 
-  const { channel, ts, type, bot_id, user } = req.body.event;
+  const { channel, ts, type, bot_id, user, text } = req.body.event;
 
   if (type != 'message') {
     console.log('Not of type message.')
     res.sendStatus(200)
     return
   }
-  if (bot_id != "B02BCEVSHM4") {
-    var emailRes = await verifyEmail('ckl@seekayel.com')
-    var good = true
+  if (bot_id != "B02BCEVSHM4" ) {
+
+    const emails = findEmails(text)
+    var msg = 'You said my name but didn\'t give me an email to check.'
+    var icon = ':man-shrugging:'
+    if (emails && emails.length > 0) {
+      var emailRes = await verifyEmail(emails[0]) // Todo: run all emails?
+      var good = (emailRes.valid && emailRes.disposable == false && emailRes.fraud_score && emailRes.fraud_score < 80)
+
+      msg = `${emailRes.sanitized_email} => ${emailRes.fraud_score}\nraw:\n\`\`\`\n${JSON.stringify(emailRes, null, 2)}\n\`\`\`\n<@${user}>`
+      icon = (good)? ':white_check_mark:':':octagonal_sign:'
+    }
+
     const result = await web.chat.postMessage({
-      text: `<@${user}> I got the following: ${JSON.stringify(emailRes, null, 2)}`,
+      text: msg,
       channel: channel,
       thread_ts: ts,
-      icon_emoji: (good)? ':white_check_mark:':':octagonal_sign:'
+      icon_emoji: icon
     });
     console.log(result)
+
+
   } else {
     console.log('Not responding to my own messages')
   }
