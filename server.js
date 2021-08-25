@@ -1,7 +1,5 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const qs = require('querystring');
-const crypto = require('crypto');
+const CryptoJS = require("crypto-js");
 
 const { WebClient } = require('@slack/web-api');
 
@@ -20,59 +18,64 @@ const rawBodySaver = function (req, res, buf, encoding) {
 }
 
 const verifySignature = function(req) {
+  if(!process.env.SLACK_SIGNING_SECRET) {
+    console.log('ERROR: must set process.env.SLACK_SIGNING_SECRET')
+    throw new Error('No Slack Signing Secret set for your app.')
+  }
   const signature = req.headers['x-slack-signature']
   const timestamp = req.headers['x-slack-request-timestamp']
-  const hmac = crypto.createHmac('sha256', process.env.SLACK_SIGNING_SECRET)
   const [version, hash] = signature.split('=')
 
-  hmac.update(`${version}:${timestamp}:${req.rawBody}`)
+  // const hmac = crypto.createHmac('sha256', process.env.SLACK_SIGNING_SECRET)
+  // hmac.update(`${version}:${timestamp}:${req.rawBody}`)
+  // return hmac.digest('hex') === hash
 
-  return hmac.digest('hex') === hash
+  var message = `${version}:${timestamp}:${req.rawBody}`
+  var shouldBe = CryptoJS.HmacSHA256(message, process.env.SLACK_SIGNING_SECRET).toString()
+  return shouldBe === hash
 };
+
+const authenticate = function(req,res,next) {
+  if(!verifySignature(req)) {
+    res.sendStatus(403)
+    return
+  }
+
+  const { challenge } = req.body;
+  if (challenge) {
+    res.send(challenge).sendStatus(200);
+  } else {
+    next()
+  }
+  return
+}
+
 
 /*
  * Parse application/x-www-form-urlencoded && application/json
  */
+app.use(express.urlencoded({ verify: rawBodySaver, extended: true }));
+app.use(express.json({ verify: rawBodySaver }));
+app.use(authenticate)
 
-app.use(bodyParser.urlencoded({verify: rawBodySaver, extended: true }));
-app.use(bodyParser.json({ verify: rawBodySaver }));
 
 app.post('/commands', async (req, res) => {
-  const { token, challenge, type, channel, thread_ts } = req.body;
+  const { channel, thread_ts } = req.body;
 
   console.log(JSON.stringify(req.headers,null,2))
   console.log(JSON.stringify(req.body,null,2))
 
-  // check that the request signature matches expected value
-  if (verifySignature(req)) {
-    if (challenge) {
-      res.send(challenge);
-    } else {
-      const result = await web.chat.postMessage({
-        text: 'Hello world!',
-        channel: channel,
-        thread_ts: thread_ts
-      });
-      console.log(JSON.stringify(result))
-      res.sendStatus(200)
-    }
-  } else {
-    res.sendStatus(500);
-  }
+  const result = await web.chat.postMessage({
+    text: 'Hello world!',
+    channel: channel,
+    thread_ts: thread_ts
+  });
+  console.log(JSON.stringify(result))
+  res.sendStatus(200)
 })
 
-app.post('/interactive-component', (req, res) => {
-  const body = JSON.parse(req.body.payload);
-
-  // check that the verification token matches expected value
-  if (verifySignature(req)) {
-    res.send('');
-  } else {
-    res.sendStatus(500);
-  }
-});
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}!`);
+  console.log(`Slackbot listening on port ${PORT}!`);
 });
