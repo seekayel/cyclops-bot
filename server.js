@@ -106,6 +106,7 @@ app.post('/commands', async (req, res) => {
       text: msg,
       channel: channel,
       thread_ts: ts,
+      as_user: false, // needed to have the icon_emoji render
       icon_emoji: icon
     });
     console.log(result)
