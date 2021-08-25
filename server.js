@@ -32,6 +32,9 @@ app.use(bodyParser.json({ verify: rawBodySaver }));
 app.post('/commands', (req, res) => {
   const { token, text, trigger_id } = req.body;
 
+  console.log(JSON.stringify(req.headers,null,2))
+  console.log(JSON.stringify(req.body,null,2))
+
   // check that the request signature matches expected value
   if (verifySignature(req)) {
     res.send('');
