@@ -30,14 +30,14 @@ app.use(bodyParser.urlencoded({verify: rawBodySaver, extended: true }));
 app.use(bodyParser.json({ verify: rawBodySaver }));
 
 app.post('/commands', (req, res) => {
-  const { token, text, trigger_id } = req.body;
+  const { token, challenge, type } = req.body;
 
   console.log(JSON.stringify(req.headers,null,2))
   console.log(JSON.stringify(req.body,null,2))
 
   // check that the request signature matches expected value
   if (verifySignature(req)) {
-    res.send('');
+    res.send(challenge);
   } else {
     res.sendStatus(500);
   }
