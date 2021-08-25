@@ -3,6 +3,14 @@ const bodyParser = require('body-parser');
 const qs = require('querystring');
 const crypto = require('crypto');
 
+const { WebClient } = require('@slack/web-api');
+
+// Read a token from the environment variables
+const token = process.env.SLACK_BOT_TOKEN;
+
+// Initialize
+const web = new WebClient(token);
+
 const app = express();
 
 const rawBodySaver = function (req, res, buf, encoding) {
@@ -30,14 +38,20 @@ app.use(bodyParser.urlencoded({verify: rawBodySaver, extended: true }));
 app.use(bodyParser.json({ verify: rawBodySaver }));
 
 app.post('/commands', (req, res) => {
-  const { token, challenge, type } = req.body;
+  const { token, challenge, type, channel } = req.body;
 
   console.log(JSON.stringify(req.headers,null,2))
   console.log(JSON.stringify(req.body,null,2))
 
   // check that the request signature matches expected value
   if (verifySignature(req)) {
-    res.send(challenge);
+    if (challenge) {
+      res.send(challenge);
+    }
+    const result = await web.chat.postMessage({
+      text: 'Hello world!',
+      channel: channel,
+    });
   } else {
     res.sendStatus(500);
   }
