@@ -38,7 +38,7 @@ app.use(bodyParser.urlencoded({verify: rawBodySaver, extended: true }));
 app.use(bodyParser.json({ verify: rawBodySaver }));
 
 app.post('/commands', (req, res) => {
-  const { token, challenge, type, channel } = req.body;
+  const { token, challenge, type, channel, thread_ts } = req.body;
 
   console.log(JSON.stringify(req.headers,null,2))
   console.log(JSON.stringify(req.body,null,2))
@@ -47,11 +47,14 @@ app.post('/commands', (req, res) => {
   if (verifySignature(req)) {
     if (challenge) {
       res.send(challenge);
+    } else {
+      const result = await web.chat.postMessage({
+        text: 'Hello world!',
+        channel: channel,
+        thread_ts: thread_ts
+      });
+      res.sendStatus(200)
     }
-    const result = await web.chat.postMessage({
-      text: 'Hello world!',
-      channel: channel,
-    });
   } else {
     res.sendStatus(500);
   }
