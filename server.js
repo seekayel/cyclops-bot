@@ -53,6 +53,7 @@ app.post('/commands', (req, res) => {
         channel: channel,
         thread_ts: thread_ts
       });
+      console.log(JSON.stringify(result))
       res.sendStatus(200)
     }
   } else {
