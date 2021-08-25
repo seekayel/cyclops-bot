@@ -24,6 +24,18 @@ const verifySignature = function(req) {
   }
   const signature = req.headers['x-slack-signature']
   const timestamp = req.headers['x-slack-request-timestamp']
+
+  if(!signature) {
+    console.log('ERROR: must send x-slack-signature header')
+    throw new Error('Invalid x-slack-signature.')
+  }
+  if(!timestamp) {
+    console.log('ERROR: must send x-slack-request-timestamp')
+    throw new Error('x-slack-request-timestamp is required.')
+  }
+  if (!signature.includes('=')){
+    throw new Error('Unable to split signature on =')
+  }
   const [version, hash] = signature.split('=')
 
   // const hmac = crypto.createHmac('sha256', process.env.SLACK_SIGNING_SECRET)
