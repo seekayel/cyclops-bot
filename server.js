@@ -73,7 +73,7 @@ app.use(authenticate)
 
 
 app.post('/commands', async (req, res) => {
-  const { channel, thread_ts } = req.body;
+  const { channel, event_ts } = req.body.event;
 
   console.log(JSON.stringify(req.headers,null,2))
   console.log(JSON.stringify(req.body,null,2))
@@ -81,7 +81,7 @@ app.post('/commands', async (req, res) => {
   const result = await web.chat.postMessage({
     text: 'Hello world!',
     channel: channel,
-    thread_ts: thread_ts
+    event_ts: event_ts
   });
   console.log(JSON.stringify(result))
   res.sendStatus(200)
