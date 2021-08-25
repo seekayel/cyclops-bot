@@ -42,10 +42,14 @@ const verifySignature = function(req) {
   // hmac.update(`${version}:${timestamp}:${req.rawBody}`)
   // return hmac.digest('hex') === hash
 
+  console.log('req.rawBody: ')
   console.log(req.rawBody)
+
   var message = `${version}:${timestamp}:${req.rawBody}`
   var shouldBe = CryptoJS.HmacSHA256(message, process.env.SLACK_SIGNING_SECRET).toString()
-  return shouldBe === hash
+  const verified = (shouldBe === hash)
+  console.log(`verified: ${verified}`)
+  return verified
 };
 
 const authenticate = function(req,res,next) {
@@ -73,17 +77,26 @@ app.use(authenticate)
 
 
 app.post('/commands', async (req, res) => {
-  const { channel, event_ts } = req.body.event;
+  console.log(req.headers)
+  console.log(req.body)
 
-  console.log(JSON.stringify(req.headers,null,2))
-  console.log(JSON.stringify(req.body,null,2))
+  const { channel, ts, type, bot_id, user } = req.body.event;
 
-  // // const result = await web.chat.postMessage({
-  // //   text: 'Hello world!',
-  // //   channel: channel,
-  // //   event_ts: event_ts
-  // // });
-  // console.log(JSON.stringify(result))
+  if (type != 'message') {
+    console.log('Not of type message.')
+    res.sendStatus(200)
+    return
+  }
+  if (bot_id != "B02BCEVSHM4") {
+    const result = await web.chat.postMessage({
+      text: `Hello to you to <@${user}>`,
+      channel: channel,
+      thread_ts: ts
+    });
+    console.log(result)
+  } else {
+    console.log('Not responding to my own messages')
+  }
   res.sendStatus(200)
 })
 
