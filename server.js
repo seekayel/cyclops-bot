@@ -78,12 +78,12 @@ app.post('/commands', async (req, res) => {
   console.log(JSON.stringify(req.headers,null,2))
   console.log(JSON.stringify(req.body,null,2))
 
-  const result = await web.chat.postMessage({
-    text: 'Hello world!',
-    channel: channel,
-    event_ts: event_ts
-  });
-  console.log(JSON.stringify(result))
+  // // const result = await web.chat.postMessage({
+  // //   text: 'Hello world!',
+  // //   channel: channel,
+  // //   event_ts: event_ts
+  // // });
+  // console.log(JSON.stringify(result))
   res.sendStatus(200)
 })
 
