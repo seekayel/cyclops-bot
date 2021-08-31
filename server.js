@@ -84,12 +84,12 @@ app.post('/commands', async (req, res) => {
 
   const { channel, ts, type, bot_id, user, text } = req.body.event;
 
-  if (type != 'message') {
-    console.log('Not of type message.')
+  if (type != 'message' && type != 'app_mention') {
+    console.log('Not of type message or app_mention.')
     res.sendStatus(200)
     return
   }
-  if (bot_id != "B02BCEVSHM4" ) {
+  // if (bot_id != "B02BCEVSHM4" ) {
 
     const emails = findEmails(text)
     var msg = 'You said my name but didn\'t give me an email to check.'
@@ -112,9 +112,9 @@ app.post('/commands', async (req, res) => {
     console.log(result)
 
 
-  } else {
-    console.log('Not responding to my own messages')
-  }
+  // } else {
+  //   console.log('Not responding to my own messages')
+  // }
   res.sendStatus(200)
 })
 
